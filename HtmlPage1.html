@@ -1,0 +1,226 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
+    <title>济南交通基础项目信息GIS系统</title>
+    <style>
+        html,
+        body,
+        #viewDiv {
+            padding: 0;
+            margin: 0;
+            height: 100%;
+            width: 100%;
+        }
+    </style>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.23/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.23/"></script>
+
+    <script>
+        require(["esri/views/MapView",
+            "esri/WebMap", 
+            "esri/layers/FeatureLayer",
+            "esri/widgets/Search",
+            "esri/widgets/BasemapToggle",
+            "esri/widgets/BasemapGallery",
+            "esri/widgets/Track",
+            "esri/Graphic",
+            "esri/widgets/Directions",
+            "esri/layers/RouteLayer",
+            "esri/widgets/Legend", "esri/widgets/DistanceMeasurement2D"], function (MapView,
+                WebMap,
+                FeatureLayer,
+                Search,
+            BasemapToggle,
+            BasemapGallery,
+                Track,
+                Graphic,
+                Directions,
+            RouteLayer, Legend, DistanceMeasurement2D) {
+            var webmap = new WebMap({
+                portalItem: {//autocasts as new PortalItem()
+                    id: "0f037b5e353a4cb5bada9037c1ec4862"
+                }
+            });
+            //加载视图
+            var view = new MapView({
+                map: webmap,
+                container: "viewDiv"
+            })
+            //更改地图底图
+            var basemapToggle = new BasemapToggle({
+                view: view,
+                nextBasemap: "arcgis-imagery"
+            });
+            var BasemapGallery = new BasemapGallery({
+                view: view,
+                source: {
+                    portal: {
+                        url: "https://www.arcgis.com",
+                        useVectorBasemaps: true //加载切片底图
+                    }
+                }
+            })
+            //将微键添加到视图
+            view.ui.add(basemapToggle, "bottom-right");
+            //属性查图
+            var featureLayerRailway = new FeatureLayer({
+                url:
+                    "https://services3.arcgis.com/eImJEGQpp3UVtbdw/arcgis/rest/services/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/FeatureServer/4",
+                popupTemplate: {
+                    // autocasts as new PopupTemplate()
+                    title: "名称：{名称}</br>类别：{类别}</br>等级：{等级}</br>简介：{简介}</br>,",
+                    overwriteActions: true
+                }
+            });
+            var featureLayerStations = new FeatureLayer({
+                url: "https://services3.arcgis.com/eImJEGQpp3UVtbdw/arcgis/rest/services/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/FeatureServer/0",
+                popupTemplate: {
+                    //autocasts as new PopupTemplate()
+                    title: "名称：{名称}</br>项目介绍：{项目介绍}</br>等级：{等级}</br>站台路线：{站台路线}</br>隶属：{隶属}</br>,",
+                    overwriteActions: true
+                }
+            });
+            var featureLayerAirport = new FeatureLayer({
+                url: "https://services3.arcgis.com/eImJEGQpp3UVtbdw/arcgis/rest/services/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/FeatureServer/1",
+                popupTemplate: {
+                    //autocasts as new PopupTemplate()
+                    title: "名称：{名称}</br>等级：{等级}</br>项目介绍：{项目介绍}</br>类型：{类型}</br>设计参数：{设计参数}</br>,",
+                    overwriteActions: true
+                }
+            });
+            var featureLayerBridge = new FeatureLayer({
+                url: "https://services3.arcgis.com/eImJEGQpp3UVtbdw/arcgis/rest/services/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/FeatureServer/2",
+                popupTemplate: {
+                    //autocasts as new PopupTemplate()
+                    title: "名称：{名称}</br>公路等级：{公路等级}</br>建筑设计：{建筑设计}</br>简介：{简介}</br>建设成果：{建设成果}</br>,",
+                    overwriteActions: true
+                }
+            });
+            var featureLayerBusstation = new FeatureLayer({
+                url: "https://services3.arcgis.com/eImJEGQpp3UVtbdw/arcgis/rest/services/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/FeatureServer/3",
+                popupTemplate: {
+                    //autocasts as new PopupTemplate()
+                    title: "名称：{名称}</br>项目介绍：{项目介绍}</br>等级：{等级}</br>地址：{地址}</br>,",
+                    overwriteActions: true
+                }
+            });
+            var featureLayerHighway = new FeatureLayer({
+                url: "https://services3.arcgis.com/eImJEGQpp3UVtbdw/arcgis/rest/services/%E6%AF%95%E4%B8%9A%E8%AE%BE%E8%AE%A1/FeatureServer/5",
+                popupTemplate: {
+                    //autocasts as new PopupTemplate()
+                    title: "名称：{名称}</br>等级：{等级}</br>线路设计：{线路设计}</br>简介：{简介}</br>,",
+                    overwriteActions: true
+                }
+            });
+            var searchWidget = new Search({
+                view: view,
+                allPlaceholder: "搜索名称",
+                includeDefaultSources: false,
+                sources: [
+                    {
+                        layer: featureLayerRailway, searchFields: ["名称"],
+                        displayField: "名称",
+                        exactMatch: false,
+                        outFields: ["铁路"],
+                        name: "铁路",
+                        placeholder: "例如: 京沪线"
+                    },
+                    {
+                        layer: featureLayerStations, searchFields: ["名称"],
+                        displayField: "名称",
+                        exactMatch: false,
+                        outFields: ["火车站"],
+                        name: "火车站",
+                        placeholder: "例如: 济南站"
+                    },
+                    {
+                        layer: featureLayerAirport, searchFields: ["名称"],
+                        displayField: "名称",
+                        exactMatch: false,
+                        outFields: ["机场"],
+                        name: "机场",
+                        placeholder: "例如: 遥墙国际机场"
+                    },
+                    {
+                        layer: featureLayerBridge, searchFields: ["名称"],
+                        displayField: "名称",
+                        exactMatch: false,
+                        outFields: ["桥梁"],
+                        name: "桥梁",
+                        placeholder: "例如: 黄河大桥"
+                    },
+                    {
+                        layer: featureLayerBusstation, searchFields: ["名称"],
+                        displayField: "名称",
+                        exactMatch: false,
+                        outFields: ["汽车站"],
+                        name: "汽车站",
+                        placeholder: "例如: 长途汽车总站"
+                    },
+                    {
+                        layer: featureLayerHighway, searchFields: ["名称"],
+                        displayField: "名称",
+                        exactMatch: false,
+                        outFields: ["公路"],
+                        name: "公路",
+                        placeholder: "例如: 经十路"
+                    }
+                ]
+            });
+            view.ui.add(searchWidget, {
+                position: "top-right",
+            });
+            //距离量算
+            let measurementWidget = new DistanceMeasurement2D({
+                view: view
+            });
+            view.ui.add(measurementWidget, "bottom-left");
+            
+
+            //位置跟踪
+            var track = new Track({
+                view: view,
+                graphic: new Graphic({
+                    symbol: {
+                        type: "simple-marker",
+                        size: "12px",
+                        color: "green",
+                        outline: {
+                            color: "#efefef",
+                            width: "1.5px"
+                        }
+                    }
+                }),
+                useHeadingEnabled: false
+            });
+            view.ui.add(track, "top-left");
+            //添加图例
+            var legend = new Legend({
+                view: view
+            });
+            view.ui.add(legend, "bottom-left");
+            //方向微键
+            var apiKey = "AAPK88933bf01a3741ff8c2ab98cc01c4577ZDMuvHxVnziWXRNo-ujAxF3OTONn8ZCf8Evg_AcFj8XPIYEVlY1DoKwk-e5WU997";
+            // create a new RouteLayer, required for Directions widget
+            var RouteLayer = new RouteLayer();
+            // new RouteLayer must be added to Directions widget
+            let directionsWidget = new Directions({
+                layer: featureLayerRailway,
+                apiKey,
+                view
+            });
+
+            // Add the Directions widget to the top right corner of the view
+            view.ui.add(directionsWidget, {
+                position: "top-right"
+            });
+        });
+    </script>
+</head >
+            <body>
+                <div id="viewDiv"></div>
+            </body>
+
+</html >
